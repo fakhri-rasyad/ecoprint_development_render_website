@@ -1,14 +1,15 @@
-from typing import Optional
-
-from fastapi import FastAPI
+from typing import Annotated
+from fastapi import Depends, FastAPI
+from sqlmodel import Session
+from app.database.create_db import get_session, create_db
+from app.routes import users_route, login_route
 
 app = FastAPI()
 
+@app.on_event('startup')
+async def startup_event():
+    create_db()
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+app.include_router(users_route.router)
+app.include_router(login_route.router)
