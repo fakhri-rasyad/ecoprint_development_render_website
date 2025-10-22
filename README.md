@@ -1,27 +1,28 @@
-# Deploy FastAPI on Render
+# FASTAPI backend for Local Network
 
-Use this repo as a template to deploy a Python [FastAPI](https://fastapi.tiangolo.com) service on Render.
+Projek ini merupakan backend yang dikembangkan untuk digunakan sebagai server utama dari hiliriset ecoprint
 
-See https://render.com/docs/deploy-fastapi or follow the steps below:
+## Langkah Penggunaan
 
-## Manual Steps
+1. Git clone repository ini
+2. Buat virtual environtmen baru pada folder lokal dan aktifkan
+   ```shell
+   python -m venv venv
+   (*Windows) venv/Scripts/Activate
+   (*Linux dan MAC) source venv/bin/activate
+   ```
+3. Install pustaka yang diperlukan menggunakan perintah.
 
-1. You may use this repository directly or [create your own repository from this template](https://github.com/render-examples/fastapi/generate) if you'd like to customize the code.
-2. Create a new Web Service on Render.
-3. Specify the URL to your new repository or this repository.
-4. Render will automatically detect that you are deploying a Python service and use `pip` to download the dependencies.
-5. Specify the following as the Start Command.
+   ```shell
+   pip install -r requirements.txt
+   ```
 
-    ```shell
-    uvicorn main:app --host 0.0.0.0 --port $PORT
-    ```
+4. Definisikan variabel DATABASE_URL yang akan diisi url dari postgresql pada file .env.
+   ```shell
+   DATABASE_URL=postgresql://<username>:<password>@localhost:<port>/<nama_tabel_database>
+   ```
+5. Jalankan aplikasi menggunakan command
 
-6. Click Create Web Service.
-
-Or simply click:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/render-examples/fastapi)
-
-## Thanks
-
-Thanks to [Harish](https://harishgarg.com) for the [inspiration to create a FastAPI quickstart for Render](https://twitter.com/harishkgarg/status/1435084018677010434) and for some sample code!
+   ```shell
+   uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
