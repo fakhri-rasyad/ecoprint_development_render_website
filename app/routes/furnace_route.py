@@ -16,14 +16,14 @@ def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,sessi
     return furnaces
 
 @router.get("/{furnace_id}", response_model=FurnacePublic)
-def get_esp(furnace_id: int, session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]):
+def get_furnace(furnace_id: int, session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]):
     esp = session.get(Furnace, furnace_id)
     if not esp or esp.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="ESP not found")
     return esp
 
 @router.post("/create", response_model=FurnacePublic)
-def add_esps(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
+def add_furnace(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
     current_user_id = current_user.id
     furnace = Furnace(
         **new_furnace.dict(),
@@ -35,7 +35,7 @@ def add_esps(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(get
     return furnace
 
 @router.put("/update/{furnace_id}", response_model=FurnacePublic)
-def update_esp(furnace_id:int, update_furnace: FurnaceUpdate, current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
+def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
     furnace = session.get(furnace, furnace_id)
     if not furnace:
         raise HTTPException(status_code=404, detail="furnace not found")
