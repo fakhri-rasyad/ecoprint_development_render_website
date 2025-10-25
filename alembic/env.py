@@ -11,6 +11,7 @@ import configparser
 
 from app.database.database_model.user_model import User
 from app.database.database_model.esp_database_model import ESP
+from app.database.database_model.furnace_database_model import Furnace
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

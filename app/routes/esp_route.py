@@ -33,3 +33,18 @@ def add_esps(new_esp: ESPCreate,current_user:Annotated[User, Depends(get_current
     session.commit()
     session.refresh(esp)
     return esp
+
+@router.put("/{esp_id}", response_model=ESP)
+def update_esp(esp_id: int, esp_data: ESPUpdate, session: SessionDep):
+    esp = session.get(ESP, esp_id)
+    if not esp:
+        raise HTTPException(status_code=404, detail="ESP not found")
+
+    update_data = esp_data.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(esp, key, value)
+
+    session.add(esp)
+    session.commit()
+    session.refresh(esp)
+    return esp

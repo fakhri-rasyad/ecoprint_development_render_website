@@ -12,6 +12,7 @@ class User(UserBase, table=True):
     password_hash: str = Field(index=True, nullable=False)
     created_at: datetime = Field(index=True, default=datetime.now())
     esps : List["ESP"]= Relationship(back_populates="user")
+    furnaces:List["Furnace"] = Relationship(back_populates="user")
 
 class UserPublic(UserBase):
     id: int
