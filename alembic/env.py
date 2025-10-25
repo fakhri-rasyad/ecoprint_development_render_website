@@ -9,6 +9,9 @@ from app.database.database import DATABASE_URL
 from sqlmodel import SQLModel
 import configparser
 
+from app.database.database_model.user_model import User
+from app.database.database_model.esp_database_model import ESP
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

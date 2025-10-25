@@ -10,13 +10,14 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/all", response_model=list[UserPublic],)
-def get_all_user(session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]):
+def get_all_user(session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]): # pyright: ignore[reportInvalidTypeForm]
     statement = select(User)
     users = session.exec(statement)
     return users
 
-@router.get("/{user_id}", response_model=UserPublic)
-def get_user(user_id: int, session: SessionDep):
+@router.get("/me", response_model=UserPublic)
+def get_user(session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]): # pyright: ignore[reportInvalidTypeForm]
+    user_id = current_user.id
     user = session.get(entity=User, ident=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -24,7 +25,7 @@ def get_user(user_id: int, session: SessionDep):
 
 
 @router.post("/register")
-def add_user(user: UserCreate, session: SessionDep):
+def add_user(user: UserCreate, session: SessionDep): # pyright: ignore[reportInvalidTypeForm]
 
     if(user.email):
         statement = select(User).where(User.email == user.email)
@@ -43,7 +44,7 @@ def add_user(user: UserCreate, session: SessionDep):
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
-    return db_user
+    return {"message": "User registration complete, you can log into your account now"}
 
 
 
