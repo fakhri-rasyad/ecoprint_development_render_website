@@ -1,19 +1,28 @@
 from datetime import datetime
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional
 
-class SensorReading(SQLModel):
+class SensorReadingBase(SQLModel):
+    humidity: float = Field(index=True, nullable=False)
+    water_temp: float = Field(index=True, nullable=False)
+    air_temp: float = Field(index=True, nullable=False)
+    is_started: bool = Field(index=True, nullable=False)
+    is_done:bool = Field(index=True, nullable=False)
+
+class SensorReading(SensorReadingBase, table=True):
     __tablename__ = "sensor_readings"
 
-    id : int= Field(primary_key=True, index=True)
-    timestamp: datetime = Field(index=True, default=datetime.utcnow)
-    temperature: float = Field(index=True)
-    humidity: float = Field(index=True)
-    color_r :int= Field(index=True)
-    color_g : int= Field(index=True)
-    color_b: int = Field(index=True)
+    id : Optional[int]= Field(primary_key=True, index=True)
+    timestamp: datetime = Field(index=True, default=datetime.now())
 
-    # esp_id = Field(Integer, ForeignKey("esps.id"))
-    # batch_id = Field(Integer, ForeignKey("fabric_batches.id"))
+    session_id: Optional[int] = Field(default=None, foreign_key="fabric_boiling_sessions.id")
+    fabric_boiling_session: Optional["FabricBoilingSession"] = Relationship(back_populates="sensor_readings")
 
-    # esp = relationship("ESP", back_populates="readings")
-    # batch = relationship("FabricBatch", back_populates="readings")
+class SensorReadingPublic(SensorReadingBase):
+    id: int
+    timestamp: datetime
+    esp_id: int
+
+class SensorReadingCreate(SensorReadingBase):
+    pass
+

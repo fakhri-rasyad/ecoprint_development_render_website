@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional, List
 
 class FurnaceBase(SQLModel):
     name: str = Field(index=True, nullable=False)
@@ -10,8 +10,9 @@ class Furnace(FurnaceBase, table=True):
     __tablename__ = "furnaces"
     id :int = Field(primary_key=True, index=True)
     user_id : int | None = Field(default=None, foreign_key="users.id")
-
     user : Optional["User"] = Relationship(back_populates="furnaces")
+
+    fabric_boiling_session: List["FabricBoilingSession"] = Relationship(back_populates="furnace")
 
 class FurnacePublic(FurnaceBase):
     id:int

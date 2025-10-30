@@ -12,6 +12,9 @@ import configparser
 from app.database.database_model.user_model import User
 from app.database.database_model.esp_database_model import ESP
 from app.database.database_model.furnace_database_model import Furnace
+from app.database.database_model.fabric_type_model import FabricType
+from app.database.database_model.boiling_session_model import FabricBoilingSession
+from app.database.database_model.sensor_reading_database_model import SensorReading
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

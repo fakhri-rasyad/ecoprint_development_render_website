@@ -1,25 +1,30 @@
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 class ESPBase(SQLModel):
     name: str = Field(index=True)
     status: str = Field(index=True, default="offline")
+    esp_uid:str = Field(index=True)
     last_seen: datetime = Field(index=True)
 
 class ESP(ESPBase, table=True):
     __tablename__ = "esps"
 
     id: int= Field(primary_key=True, index=True)
+    esp_uid: str = Field(index=True, default=None)
+
     user_id: int | None = Field(default=None, foreign_key="users.id")
-   
     user: Optional["User"] = Relationship(back_populates="esps")
+
+    fabric_boiling_session: List["FabricBoilingSession"] = Relationship(back_populates="esp")
 
 class ESPPublic(ESPBase):
     id:int
 
 class ESPCreate(ESPBase):
     name: str
+    esp_uid: str
     status: Optional[str] = "offline"
 
 class ESPUpdate(ESPBase):
