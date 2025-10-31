@@ -7,7 +7,7 @@ from app.database.database_model.sensor_reading_database_model import SensorRead
 from app.database.create_db import SessionDep
 from app.routes.websockets.connection_manager import manager
 from datetime import datetime
-from sqlmodel import select
+from sqlmodel import select, func
 import json
 
 router = APIRouter(prefix="/esps", tags=["ESPs"])
@@ -41,7 +41,7 @@ async def receive_esp_data(esp_uid: str, data: SensorReadingCreate, session: Ses
         air_temp=data.air_temp,
         is_started=data.is_started,
         is_done=data.is_done,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now()
     )
     session.add(reading)
     session.commit()
@@ -61,26 +61,40 @@ async def receive_esp_data(esp_uid: str, data: SensorReadingCreate, session: Ses
     return {"status": "ok", "reading_id": reading.id}
 
 @router.post("/create", response_model=ESPPublic)
-def add_esps(new_esp: ESPCreate,current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
-    current_user_id = current_user.id
+def add_esps(new_esp: ESPCreate, session: SessionDep):
+    count_statement = select(func.count(ESP.id))
+    esp_table_length = session.exec(count_statement).one() + 1
+    esp_uid = f"ESPUID2025{esp_table_length:03d}"
+
     esp = ESP(
         **new_esp.dict(),
-        user_id=current_user_id
+        esp_uid=esp_uid
     )
     session.add(esp)
     session.commit()
     session.refresh(esp)
     return esp
 
-@router.put("/{esp_id}", response_model=ESP)
-def update_esp(esp_id: int, esp_data: ESPUpdate, session: SessionDep):
-    esp = session.get(ESP, esp_id)
+@router.put("/{esp_uid}", response_model=ESP)
+def update_esp_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+    esp_uid: str,
+    esp_data: ESPUpdate, 
+    session: SessionDep, 
+):
+    statement = select(ESP).where(ESP.esp_uid == esp_uid)
+    esp = session.exec(statement).first()
+
     if not esp:
         raise HTTPException(status_code=404, detail="ESP not found")
 
-    update_data = esp_data.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(esp, key, value)
+    if esp.user_id is not None and esp.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="ESP already registered by another user")
+
+    esp.user_id = current_user.id
+
+    if esp_data.status:
+        esp.status = esp_data.status
 
     session.add(esp)
     session.commit()

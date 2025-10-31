@@ -36,14 +36,16 @@ def add_furnace(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(
 
 @router.put("/update/{furnace_id}", response_model=FurnacePublic)
 def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
-    furnace = session.get(furnace, furnace_id)
+    select_statement = select(Furnace).where(Furnace.id == furnace_id)
+    furnace = session.exec(select_statement).first()
     if not furnace:
         raise HTTPException(status_code=404, detail="furnace not found")
 
-    # Update only provided fields
     update_data = update_furnace.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(furnace, key, value)
+
+    furnace.user_id = current_user.id
 
     session.add(furnace)
     session.commit()

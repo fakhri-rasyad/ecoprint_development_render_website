@@ -10,7 +10,7 @@ class FabricType(FabricTypeBase, table=True):
     __tablename__ = "fabric_types"
     id: Optional[int] = Field(primary_key=True, index=True, nullable=False)
 
-    fabric_boiling_sesion : Optional["FabricBoilingSession"] = Relationship(back_populates="fabric_type")
+    fabric_boiling_sessions : Optional["FabricBoilingSession"] = Relationship(back_populates="fabric_type")
 
 class FabricTypePublic(FabricTypeBase):
     pass

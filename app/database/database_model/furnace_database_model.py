@@ -12,7 +12,7 @@ class Furnace(FurnaceBase, table=True):
     user_id : int | None = Field(default=None, foreign_key="users.id")
     user : Optional["User"] = Relationship(back_populates="furnaces")
 
-    fabric_boiling_session: List["FabricBoilingSession"] = Relationship(back_populates="furnace")
+    fabric_boiling_sessions: List["FabricBoilingSession"] = Relationship(back_populates="furnace")
 
 class FurnacePublic(FurnaceBase):
     id:int
@@ -24,7 +24,6 @@ class FurnaceCreate(FurnaceBase):
 class FurnaceUpdate(FurnaceBase):
     name: Optional[str]=None
     status:Optional[str]=None
-    user_id:Optional[int]=None
 
 
 

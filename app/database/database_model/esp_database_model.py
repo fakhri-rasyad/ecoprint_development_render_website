@@ -5,7 +5,6 @@ from typing import Optional, List
 class ESPBase(SQLModel):
     name: str = Field(index=True)
     status: str = Field(index=True, default="offline")
-    esp_uid:str = Field(index=True)
     last_seen: datetime = Field(index=True)
 
 class ESP(ESPBase, table=True):
@@ -17,21 +16,20 @@ class ESP(ESPBase, table=True):
     user_id: int | None = Field(default=None, foreign_key="users.id")
     user: Optional["User"] = Relationship(back_populates="esps")
 
-    fabric_boiling_session: List["FabricBoilingSession"] = Relationship(back_populates="esp")
+    fabric_boiling_sessions: List["FabricBoilingSession"] = Relationship(back_populates="esp")
 
 class ESPPublic(ESPBase):
     id:int
+    esp_uid:str
 
 class ESPCreate(ESPBase):
     name: str
-    esp_uid: str
     status: Optional[str] = "offline"
 
 class ESPUpdate(ESPBase):
     name: Optional[str]=None
     status: Optional[str]=None
     last_seen: Optional[str]=None
-    user_id: Optional[int]=None
 
 
     # owner_id = Field(Integer, ForeignKey("users.id"))
