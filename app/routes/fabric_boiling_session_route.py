@@ -14,13 +14,13 @@ from datetime import datetime, timedelta
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
 @router.get("/all", response_model=list[FabricBoilingSessionPublic])
-def get_all_sessions(current_user: Annotated[User, Depends(get_current_user)], session:SessionDep):
+def get_all_sessions(current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
     statement = select(FabricBoilingSession)
     session_list = session.exec(statement).all()
     return session_list
 
 @router.get("/{session_id}", response_model=FabricBoilingSessionPublic)
-def get_session(session_id:int, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep):
+def get_session(session_id:int, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
     statement = select(FabricBoilingSession).where(FabricBoilingSession.id == session_id)
     session_name = session.exec(statement).first()
     if not session_name:
@@ -28,7 +28,7 @@ def get_session(session_id:int, current_user: Annotated[User, Depends(get_curren
     return session_name
 
 @router.post("/create", response_model=FabricBoilingSessionPublic)
-def add_session(new_session: FabricBoilingSessionCreate, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep):
+def add_session(new_session: FabricBoilingSessionCreate, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
 
     esp  = session.exec(select(ESP).where(new_session.esp_id == ESP.id)).first()
     if not esp:

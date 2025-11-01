@@ -16,4 +16,6 @@ class FabricTypePublic(FabricTypeBase):
     pass
 
 class FabricTypeCreate(FabricTypeBase):
-    pass
+    name:str
+    boiling_time: int
+    temp: float

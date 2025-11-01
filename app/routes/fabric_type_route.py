@@ -1,0 +1,34 @@
+from fastapi import HTTPException, APIRouter
+from app.database.create_db import SessionDep
+from app.database.database_model.fabric_type_model import FabricType, FabricTypeCreate
+from sqlmodel import select
+
+router = APIRouter(prefix="/fabrictype", tags=["fabric_type"])
+
+
+@router.get("/all", response_model=list[FabricType])
+def get_all_fabric_types(session: SessionDep):
+    statement = select(FabricType)
+    fabric_type_list = session.exec(statement).all()
+    return fabric_type_list
+
+@router.get("/{fabric_id}", response_model=FabricType)
+def get_fabric_info(fabric_id:int, session: SessionDep):
+    statemet = select(FabricType).where(FabricType.id == fabric_id)
+    fabric =  session.exec(statemet).first()
+    if not fabric:
+        raise HTTPException(status_code=404, detail="Fabric Type not Found")
+    return fabric
+
+@router.post("/add", response_model=FabricType)
+def add_fabric_type(new_fabric: FabricTypeCreate, session: SessionDep):
+    fabric = FabricType(
+        name=new_fabric.name,
+        temp=new_fabric.temp,
+        boiling_time=new_fabric.boiling_time
+    )
+    session.add(fabric)
+    session.commit()
+    session.refresh(fabric)
+    return fabric
+
