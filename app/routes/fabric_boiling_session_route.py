@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlmodel import select
 from app.database.database_model.user_model import User
 from app.database.database_model.esp_database_model import ESP
@@ -9,6 +10,7 @@ from app.database.create_db import SessionDep
 from typing import Annotated
 from app.auth.auth import get_current_user
 from datetime import datetime, timedelta
+from cv2 import VideoCapture, imwrite
 
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
@@ -19,6 +21,25 @@ def get_all_sessions(current_user: Annotated[User, Depends(get_current_user)], s
     session_list = session.exec(statement).all()
     return session_list
 
+
+@router.get("/take_image", response_class=FileResponse)
+def get_fabric_image(current_user: Annotated[User, Depends(get_current_user)], session: SessionDep): # pyright: ignore[reportInvalidTypeForm]
+    
+    cam = VideoCapture(0)
+
+    filename = f"Fabric Image {datetime.now().strftime('%H-%M-%S_%d-%m-%Y')}.jpg"
+
+    ret, frame = cam.read()
+    if ret:
+        imwrite(filename, frame) 
+    else:
+        raise HTTPException(status_code=403, detail="Failed to capture image")
+    
+    cam.release()
+    imwrite(filename, frame)
+    return FileResponse(filename, media_type="image/jpeg")
+
+
 @router.get("/{session_id}", response_model=FabricBoilingSessionPublic)
 def get_session(session_id:int, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
     statement = select(FabricBoilingSession).where(FabricBoilingSession.id == session_id)
@@ -26,6 +47,7 @@ def get_session(session_id:int, current_user: Annotated[User, Depends(get_curren
     if not session_name:
         raise HTTPException(status_code=404, detail="Session not found")
     return session_name
+
 
 @router.post("/create", response_model=FabricBoilingSessionPublic)
 def add_session(new_session: FabricBoilingSessionCreate, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
