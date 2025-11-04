@@ -8,6 +8,7 @@ class SensorReadingBase(SQLModel):
     air_temp: float = Field(index=True, nullable=False)
     is_started: bool = Field(index=True, nullable=False)
     is_done:bool = Field(index=True, nullable=False)
+    water_sufficient: bool = Field(index=True,nullable=False)
 
 class SensorReading(SensorReadingBase, table=True):
     __tablename__ = "sensor_readings"

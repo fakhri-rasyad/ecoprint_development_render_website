@@ -11,7 +11,7 @@ from typing import Annotated
 from app.auth.auth import get_current_user
 from datetime import datetime, timedelta
 from cv2 import VideoCapture, imwrite
-
+from app.routes.websockets.connection_manager import manager
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
@@ -39,37 +39,40 @@ def get_fabric_image(current_user: Annotated[User, Depends(get_current_user)], s
     imwrite(filename, frame)
     return FileResponse(filename, media_type="image/jpeg")
 
-
-@router.get("/{session_id}", response_model=FabricBoilingSessionPublic)
-def get_session(session_id:int, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
-    statement = select(FabricBoilingSession).where(FabricBoilingSession.id == session_id)
-    session_name = session.exec(statement).first()
-    if not session_name:
-        raise HTTPException(status_code=404, detail="Session not found")
-    return session_name
-
-
 @router.post("/create", response_model=FabricBoilingSessionPublic)
-def add_session(new_session: FabricBoilingSessionCreate, current_user: Annotated[User, Depends(get_current_user)], session:SessionDep): # pyright: ignore[reportInvalidTypeForm]
+async def add_session(new_session: FabricBoilingSessionCreate, 
+                      current_user: Annotated[User, Depends(get_current_user)], 
+                      session: SessionDep):
 
-    esp  = session.exec(select(ESP).where(new_session.esp_id == ESP.id)).first()
+    esp = session.exec(select(ESP).where(ESP.id == new_session.esp_id)).first()
     if not esp:
         raise HTTPException(status_code=404, detail="ESP Not valid")
 
-    furnace  = session.exec(select(Furnace).where(new_session.furnace_id == Furnace.id)).first()
+    furnace = session.exec(select(Furnace).where(Furnace.id == new_session.furnace_id)).first()
     if not furnace:
         raise HTTPException(status_code=404, detail="Furnace Not valid")
-    
-    fabric_type  = session.exec(select(FabricType).where(new_session.fabric_type_id == FabricType.id)).first()
+
+    fabric_type = session.exec(select(FabricType).where(FabricType.id == new_session.fabric_type_id)).first()
     if not fabric_type:
         raise HTTPException(status_code=404, detail="Fabric Type Not valid")
 
     fabric_session = FabricBoilingSession(
-        **new_session,
-        end_time=datetime.now() + timedelta(fabric_type.boiling_time)
-
+        **new_session.dict(),
+        end_time=datetime.now() + timedelta(minutes=fabric_type.boiling_time)
     )
     session.add(fabric_session)
     session.commit()
     session.refresh(fabric_session)
+
+    if esp.esp_uid not in manager.active_esps:
+        raise HTTPException(status_code=400, detail="ESP is not connected via WebSocket")
+
+    await manager.send_to_esp(esp.esp_uid, {
+        "event": "session_start",
+        "fabric_type": fabric_type.name,
+        "boiling_temp": fabric_type.boiling_temp,
+        "boiling_time": fabric_type.boiling_time,
+        "session_id": fabric_session.id
+    })
+
     return fabric_session
