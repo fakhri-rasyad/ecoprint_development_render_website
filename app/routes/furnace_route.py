@@ -30,10 +30,10 @@ def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,sessi
 
 @router.get("/{furnace_id}", response_model=FurnacePublic)
 def get_furnace(furnace_id: int, session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]):
-    esp = session.get(Furnace, furnace_id)
-    if not esp or esp.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="ESP not found")
-    return esp
+    furnace = session.get(Furnace, furnace_id)
+    if not furnace or furnace.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Furnace not found")
+    return furnace
 
 @router.post("/create", response_model=FurnacePublic)
 def add_furnace(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
@@ -48,9 +48,11 @@ def add_furnace(new_furnace: FurnaceCreate,current_user:Annotated[User, Depends(
     return furnace
 
 @router.put("/update/{furnace_id}", response_model=FurnacePublic)
-def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
+def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, status:Status,current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
+    print(furnace_id)
     select_statement = select(Furnace).where(Furnace.id == furnace_id)
     furnace = session.exec(select_statement).first()
+    print(furnace)
     if not furnace:
         raise HTTPException(status_code=404, detail="furnace not found")
 
@@ -59,6 +61,7 @@ def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, current_user:A
         setattr(furnace, key, value)
 
     furnace.user_id = current_user.id
+    furnace.status = status
 
     session.add(furnace)
     session.commit()

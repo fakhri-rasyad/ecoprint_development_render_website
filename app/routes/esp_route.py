@@ -13,6 +13,12 @@ import json
 
 router = APIRouter(prefix="/esps", tags=["ESPs"])
 
+@router.get("/admin/all", response_model=list[ESPPublic])
+def get_esps(session: SessionDep):
+    statement = select(ESP)
+    esps = session.exec(statement).all()
+    return esps
+
 @router.get("/all", response_model=list[ESPPublic])
 def get_esps(current_user: Annotated[User, Depends(get_current_user)], session: SessionDep):
     statement = select(ESP).where(ESP.user_id == current_user.id)
@@ -40,9 +46,18 @@ def get_esp(esp_id: int, session: SessionDep, current_user: Annotated[User, Depe
 
 @router.post("/create", response_model=ESPPublic)
 def add_esps(new_esp: ESPCreate, session: SessionDep):
-    esp = ESP(
-        **new_esp.dict(),
-    )
+    # Check if MAC already exists
+    existing_esp = session.exec(
+        select(ESP).where(ESP.esp_mac_address == new_esp.esp_mac_address)
+    ).first()
+
+    if existing_esp:
+        raise HTTPException(
+            status_code=400,
+            detail=f"ESP with MAC address '{new_esp.esp_mac_address}' already exists."
+        )
+
+    esp = ESP(**new_esp.dict())
     session.add(esp)
     session.commit()
     session.refresh(esp)
@@ -52,7 +67,7 @@ def add_esps(new_esp: ESPCreate, session: SessionDep):
 def update_esp_user(
     current_user: Annotated[User, Depends(get_current_user)],
     esp_mac_address: str,
-    esp_data: ESPUpdate, 
+    status: Status,
     session: SessionDep, 
 ):
     statement = select(ESP).where(ESP.esp_mac_address == esp_mac_address)
@@ -65,9 +80,7 @@ def update_esp_user(
         raise HTTPException(status_code=403, detail="ESP already registered by another user")
 
     esp.user_id = current_user.id
-
-    if esp_data.status:
-        esp.status = esp_data.status
+    esp.status = status
 
     session.add(esp)
     session.commit()

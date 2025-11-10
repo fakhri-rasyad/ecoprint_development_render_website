@@ -12,7 +12,7 @@ class ESP(ESPBase, table=True):
     __tablename__ = "esps"
 
     id: int= Field(primary_key=True, index=True)
-    esp_mac_address: str = Field(index=True, default=None)
+    esp_mac_address: str = Field(index=True, default=None, unique=True)
 
     user_id: int | None = Field(default=None, foreign_key="users.id")
     user: Optional["User"] = Relationship(back_populates="esps")
@@ -25,6 +25,7 @@ class ESPPublic(ESPBase):
 
 class ESPCreate(ESPBase):
     name: str
+    esp_mac_address:str
 
 class ESPUpdate(ESPBase):
     name: Optional[str]=None

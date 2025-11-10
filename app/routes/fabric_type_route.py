@@ -22,6 +22,11 @@ def get_fabric_info(fabric_id:int, session: SessionDep):
 
 @router.post("/add", response_model=FabricType)
 def add_fabric_type(new_fabric: FabricTypeCreate, session: SessionDep):
+
+    fabric_type = session.exec(select(FabricType).where(FabricType.name == new_fabric.name)).first()
+    if fabric_type:
+        raise HTTPException(status_code=409, detail="Fabric Already Exists")
+
     fabric = FabricType(
         name=new_fabric.name,
         temp=new_fabric.temp,

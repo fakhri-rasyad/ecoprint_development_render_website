@@ -66,8 +66,9 @@ async def add_session(new_session: FabricBoilingSessionCreate,
     fabric_session = FabricBoilingSession(
         **new_session.dict(),
         status=Status.RUNNING,
-        end_time=datetime.now() + timedelta(minutes=fabric_type.boiling_time)
     )
+
+    fabric_session.start_time = datetime.now()
 
     esp.status = Status.RUNNING
     furnace.status = Status.RUNNING

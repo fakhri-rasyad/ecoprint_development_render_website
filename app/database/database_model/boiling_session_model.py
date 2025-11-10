@@ -5,15 +5,14 @@ from app.database.database_model.enum_classes import Status
 
 class FabricBoilingSessionBase(SQLModel):
     notes: Optional[str] = None
-    status: Status
     start_time: datetime
-    end_time: Optional[datetime]
     
 class FabricBoilingSession(FabricBoilingSessionBase, table=True):
     __tablename__ = "fabric_boiling_sessions"
 
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
-
+    
+    status: Status = Field(default=Status.RUNNING)
     start_time: datetime = Field(default_factory=datetime.now())
     end_time: Optional[datetime] = None
 
@@ -31,6 +30,8 @@ class FabricBoilingSessionPublic(FabricBoilingSessionBase):
     id: int
     esp_id: int
     fabric_type_id: int
+    furnace_id: int
+    status: Status
     start_time: datetime
     end_time: Optional[datetime]
 
@@ -38,4 +39,3 @@ class FabricBoilingSessionCreate(FabricBoilingSessionBase):
     esp_id: int
     fabric_type_id: int
     furnace_id:int
-    end_time: Optional[datetime] = None

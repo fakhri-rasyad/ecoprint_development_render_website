@@ -14,13 +14,12 @@ from sqlmodel import select
 from datetime import datetime
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
-
+required_fields = ["humidity", "water_temperature", "air_temperature", "water_sufficient", "is_started", "is_done"]
 
 # ws://api.hiliriset-ecoprint.site/ws/{endpoint}
 @router.websocket("/esps/{esp_mac_address}")
 async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: SessionDep):
     esp = session.exec(select(ESP).where(ESP.esp_mac_address == esp_mac_address)).first()
-    await websocket.accept()
 
     if not esp:
         await websocket.send_json({"error": "ESP not registered"})
@@ -33,16 +32,30 @@ async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: Ses
     session.commit()
     print(f"ESP {esp_mac_address} connected")
 
-    boiling_session = session.exec(select(FabricBoilingSession).where(FabricBoilingSession.esp_id == esp.id).where(FabricBoilingSession.status ==  Status.RUNNING)).first()
-    if not boiling_session:
-        await websocket.send_json({"error": "No session, create the session first"})
-        await websocket.close()
-        return
-
     try:
         while True:
             data = await websocket.receive_json()
             print(f"📡 Data from ESP {esp_mac_address}: {data}")
+
+             # 3️⃣ Check if there’s an active session for this ESP
+            boiling_session = session.exec(
+                select(FabricBoilingSession)
+                .where(FabricBoilingSession.esp_id == esp.id)
+                .where(FabricBoilingSession.status == Status.RUNNING)
+            ).first()
+
+            if not boiling_session:
+                # ESP is not in session → ignore or warn
+                await websocket.send_json({
+                    "warning": "No active boiling session. Data ignored."
+                })
+                print(f"⚠️ Ignored data from {esp_mac_address} (no active session)")
+                continue  # skip processing
+
+            # Check if any required field is missing
+            missing = [f for f in required_fields if f not in data or data[f] is None]
+            if missing:
+                continue
 
             sensor_data = SensorReading(
                 session_id = boiling_session.id,
@@ -65,6 +78,7 @@ async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: Ses
                 if furnace:
                     furnace.status = Status.IDLE
                 boiling_session.status = Status.DONE
+                boiling_session.end_time = datetime.now()
                 session.commit()
                 session.refresh(boiling_session)
 
@@ -83,8 +97,6 @@ async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: Ses
 
 @router.websocket("/mobile/{session_id}")
 async def mobile_websocket(websocket: WebSocket, session_id: int, session: SessionDep):
-    await websocket.accept()
-
     fabric_session = session.exec(
         select(FabricBoilingSession).where(FabricBoilingSession.id == session_id)
     ).first()
@@ -103,7 +115,7 @@ async def mobile_websocket(websocket: WebSocket, session_id: int, session: Sessi
         await websocket.close()
         return
 
-    manager.connect_mobile(esp.esp_mac_address, websocket)
+    await manager.connect_mobile(esp.esp_mac_address, websocket)
     print(f"📱 Mobile subscribed to ESP {esp.esp_mac_address}")
 
     try:
