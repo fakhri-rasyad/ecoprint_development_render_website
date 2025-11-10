@@ -12,6 +12,7 @@ from app.auth.auth import get_current_user
 from datetime import datetime, timedelta
 from cv2 import VideoCapture, imwrite
 from app.routes.websockets.connection_manager import manager
+from app.database.database_model.enum_classes import Status
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
@@ -56,18 +57,30 @@ async def add_session(new_session: FabricBoilingSessionCreate,
     if not fabric_type:
         raise HTTPException(status_code=404, detail="Fabric Type Not valid")
 
+    check_active_session = session.exec(select(FabricBoilingSession).where(FabricBoilingSession.esp_id == esp.id)).first()
+
+    if check_active_session and check_active_session.status == Status.RUNNING:
+        raise HTTPException(status_code=409, detail="ESP Is Being Used on Another Session")
+
+    
     fabric_session = FabricBoilingSession(
         **new_session.dict(),
+        status=Status.RUNNING,
         end_time=datetime.now() + timedelta(minutes=fabric_type.boiling_time)
     )
+
+    esp.status = Status.RUNNING
+    furnace.status = Status.RUNNING
     session.add(fabric_session)
     session.commit()
     session.refresh(fabric_session)
+    session.refresh(esp)
+    session.refresh(furnace)
 
-    if esp.esp_uid not in manager.active_esps:
+    if esp.esp_mac_address not in manager.active_esps:
         raise HTTPException(status_code=400, detail="ESP is not connected via WebSocket")
 
-    await manager.send_to_esp(esp.esp_uid, {
+    await manager.send_to_esp(esp.esp_mac_address, {
         "event": "session_start",
         "fabric_type": fabric_type.name,
         "boiling_temp": fabric_type.boiling_temp,

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="0c0556c8-0924-499b-8557-101d03393748" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Fabric Image 21-47-10_01-11-2025.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Fabric Image 21-47-58_01-11-2025.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/database/database_model/esp_database_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/database/database_model/esp_database_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/esp_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/esp_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/fabric_boiling_session_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/fabric_boiling_session_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/sensor_reading_route.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/websockets/connection_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/websockets/connection_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/ws_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/ws_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/captured_image.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 4
+}]]></component>
+  <component name="ProjectId" id="35HYn0PIpHPc3FkOjmdKBDfmw0N" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-4e2b1448bda8-9a97661f3031-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.27397.106" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0c0556c8-0924-499b-8557-101d03393748" name="Changes" comment="" />
+      <created>1762768631825</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1762768631825</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

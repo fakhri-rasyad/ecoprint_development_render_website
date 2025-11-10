@@ -1,10 +1,11 @@
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
+from app.database.database_model.enum_classes import Status
 
 class FurnaceBase(SQLModel):
     name: str = Field(index=True, nullable=False)
-    status:str = Field(index=True, default="idle")
+    status: Status = Field(index=True, default=Status.IDLE)    
 
 class Furnace(FurnaceBase, table=True):
     __tablename__ = "furnaces"
@@ -19,7 +20,6 @@ class FurnacePublic(FurnaceBase):
 
 class FurnaceCreate(FurnaceBase):
     name: str
-    status: Optional[str]="idle"
 
 class FurnaceUpdate(FurnaceBase):
     name: Optional[str]=None

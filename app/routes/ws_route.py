@@ -5,17 +5,21 @@ from app.routes.websockets.connection_manager import manager
 from app.database.create_db import SessionDep
 from app.auth.auth import get_current_user
 from app.database.database_model.esp_database_model import ESP
+from app.database.database_model.furnace_database_model import Furnace
 from app.database.database_model.user_model import User
 from app.database.database_model.sensor_reading_database_model import SensorReading
 from app.database.database_model.boiling_session_model import FabricBoilingSession
+from app.database.database_model.enum_classes import Status
 from sqlmodel import select
 from datetime import datetime
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
 
-@router.websocket("/esps/{esp_uid}")
-async def esp_websocket(websocket: WebSocket, esp_uid: str, session: SessionDep):
-    esp = session.exec(select(ESP).where(ESP.esp_uid == esp_uid)).first()
+
+# ws://api.hiliriset-ecoprint.site/ws/{endpoint}
+@router.websocket("/esps/{esp_mac_address}")
+async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: SessionDep):
+    esp = session.exec(select(ESP).where(ESP.esp_mac_address == esp_mac_address)).first()
     await websocket.accept()
 
     if not esp:
@@ -23,19 +27,25 @@ async def esp_websocket(websocket: WebSocket, esp_uid: str, session: SessionDep)
         await websocket.close()
         return
 
-    await manager.connect_esp(esp_uid, websocket)
-    esp.status = "online"
+    await manager.connect_esp(esp_mac_address, websocket)
+    esp.status = Status.IDLE
     session.add(esp)
     session.commit()
-    print(f"ESP {esp_uid} connected")
+    print(f"ESP {esp_mac_address} connected")
+
+    boiling_session = session.exec(select(FabricBoilingSession).where(FabricBoilingSession.esp_id == esp.id).where(FabricBoilingSession.status ==  Status.RUNNING)).first()
+    if not boiling_session:
+        await websocket.send_json({"error": "No session, create the session first"})
+        await websocket.close()
+        return
 
     try:
         while True:
             data = await websocket.receive_json()
-            print(f"📡 Data from ESP {esp_uid}: {data}")
+            print(f"📡 Data from ESP {esp_mac_address}: {data}")
 
             sensor_data = SensorReading(
-                esp_id=esp.id,
+                session_id = boiling_session.id,
                 humidity=data.get("humidity"),
                 water_temp=data.get("water_temperature"),
                 air_temp=data.get("air_temperature"),
@@ -47,18 +57,27 @@ async def esp_websocket(websocket: WebSocket, esp_uid: str, session: SessionDep)
             session.commit()
 
             if data.get("is_done"):
-                await manager.disconnect_mobile(esp_uid)
+                await manager.send_to_mobile(esp_mac_address, {"message" : "Boiling Complete!"})
+                await manager.disconnect_mobile(esp_mac_address)
+                furnace = session.exec(
+                    select(Furnace).where(Furnace.id == boiling_session.furnace_id)
+                ).first()
+                if furnace:
+                    furnace.status = Status.IDLE
+                boiling_session.status = Status.DONE
+                session.commit()
+                session.refresh(boiling_session)
 
-            await manager.send_to_mobile(esp_uid, {
+            await manager.send_to_mobile(esp_mac_address, {
                 "event": "sensor_update",
-                "esp_uid": esp_uid,
+                "esp_mac_address": esp_mac_address,
                 "data": data
             })
 
     except WebSocketDisconnect:
-        print(f"❌ ESP {esp_uid} disconnected")
-        await manager.disconnect_esp(esp_uid)
-        esp.status = "offline"
+        print(f"❌ ESP {esp_mac_address} disconnected")
+        await manager.disconnect_esp(esp_mac_address)
+        esp.status = Status.OFFLINE
         session.add(esp)
         session.commit()
 
@@ -84,15 +103,15 @@ async def mobile_websocket(websocket: WebSocket, session_id: int, session: Sessi
         await websocket.close()
         return
 
-    manager.active_mobiles[esp.esp_uid] = websocket
-    print(f"📱 Mobile subscribed to ESP {esp.esp_uid}")
+    manager.connect_mobile(esp.esp_mac_address, websocket)
+    print(f"📱 Mobile subscribed to ESP {esp.esp_mac_address}")
 
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        print(f"📱 Mobile disconnected from ESP {esp.esp_uid}")
-        manager.active_mobiles.pop(esp.esp_uid, None)
+        print(f"📱 Mobile disconnected from ESP {esp.esp_mac_address}")
+        manager.active_mobiles.pop(esp.esp_mac_address, None)
 
 @router.websocket("/test")
 async def websocket_test(websocket: WebSocket):

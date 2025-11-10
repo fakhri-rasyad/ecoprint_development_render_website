@@ -1,17 +1,18 @@
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
 from typing import Optional, List
+from app.database.database_model.enum_classes import Status
 
 class ESPBase(SQLModel):
     name: str = Field(index=True)
-    status: str = Field(index=True, default="offline")
+    status: Status = Field(index=True, default=Status.IDLE)
     last_seen: datetime = Field(index=True)
 
 class ESP(ESPBase, table=True):
     __tablename__ = "esps"
 
     id: int= Field(primary_key=True, index=True)
-    esp_uid: str = Field(index=True, default=None)
+    esp_mac_address: str = Field(index=True, default=None)
 
     user_id: int | None = Field(default=None, foreign_key="users.id")
     user: Optional["User"] = Relationship(back_populates="esps")
@@ -20,11 +21,10 @@ class ESP(ESPBase, table=True):
 
 class ESPPublic(ESPBase):
     id:int
-    esp_uid:str
+    esp_mac_address:str
 
 class ESPCreate(ESPBase):
     name: str
-    status: Optional[str] = "offline"
 
 class ESPUpdate(ESPBase):
     name: Optional[str]=None

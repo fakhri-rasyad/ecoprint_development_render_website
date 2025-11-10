@@ -1,10 +1,11 @@
 from sqlmodel import SQLModel, Relationship, Field
 from typing import Optional, List
 from datetime import datetime
+from app.database.database_model.enum_classes import Status
 
 class FabricBoilingSessionBase(SQLModel):
     notes: Optional[str] = None
-    status: Optional[str] = "running"
+    status: Status
     start_time: datetime
     end_time: Optional[datetime]
     
