@@ -57,6 +57,13 @@ async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: Ses
             if missing:
                 continue
 
+#             - humidity: number 
+# - water_temperature: number
+# - air_temperature: number 
+# - water_sufficient: boolean
+# - is_started: boolean 
+# - is_done: boolean
+
             sensor_data = SensorReading(
                 session_id = boiling_session.id,
                 humidity=data.get("humidity"),
@@ -84,7 +91,6 @@ async def esp_websocket(websocket: WebSocket, esp_mac_address: str, session: Ses
 
             await manager.send_to_mobile(esp_mac_address, {
                 "event": "sensor_update",
-                "esp_mac_address": esp_mac_address,
                 "data": data
             })
 
