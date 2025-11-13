@@ -76,13 +76,15 @@ Data yang perlu dikirimkan ke API merupakan string alamat MAC esp yang telah did
 
 Sinyal yang dikirimkan kepada ESP apabila pengguna memulai proses pengukusan
 
+```
 {
-"event": "session_start",  
+"event": "session_start",
  "fabric_type": fabric_type.name,
 "boiling_temp": fabric_type.boiling_temp,
 "boiling_time": fabric_type.boiling_time,
 "session_id": fabric_session.id
 }
+```
 
 | Parameter    | Tipe Data   | Deskripsi                           |
 | ------------ | ----------- | ----------------------------------- |
@@ -139,8 +141,9 @@ Data yang perlu dikirimkan ke API merupakan id sesi yang ingin dimonitor
 
 Sinyal yang dikirimkan kepada mobile saat sistem menerima input dari ESP
 
+```
 {
-"event": "sensor_update",  
+"event": "sensor_update",
 "data" :
 {
 "humidity": 0.0 (float),
@@ -151,6 +154,7 @@ is_started: boolean,
 is_done: boolean,
 }
 }
+```
 
 | Parameter         | Tipe Data | Deskripsi                  |
 | ----------------- | --------- | -------------------------- |
