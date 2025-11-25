@@ -5,3 +5,5 @@ class Status(str, Enum):
     IDLE = "idle"
     DONE = "done"
     OFFLINE = "offline"
+    PREPARING = "preparing"
+    CANCELED = "canceled"

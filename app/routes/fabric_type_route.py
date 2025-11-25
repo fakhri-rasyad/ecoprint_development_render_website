@@ -29,7 +29,7 @@ def add_fabric_type(new_fabric: FabricTypeCreate, session: SessionDep):
 
     fabric = FabricType(
         name=new_fabric.name,
-        temp=new_fabric.temp,
+        boiling_temp=new_fabric.boiling_temp,
         boiling_time=new_fabric.boiling_time
     )
     session.add(fabric)

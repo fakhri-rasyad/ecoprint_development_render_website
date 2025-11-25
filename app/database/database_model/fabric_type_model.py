@@ -4,7 +4,7 @@ from typing import Optional
 class FabricTypeBase(SQLModel):
     name: str = Field(index=True, nullable=False)
     boiling_time: int = Field(index=True, nullable=False)
-    temp: float = Field(index=True, nullable=False)
+    boiling_temp: float = Field(index=True, nullable=False)
 
 class FabricType(FabricTypeBase, table=True):
     __tablename__ = "fabric_types"
@@ -18,4 +18,4 @@ class FabricTypePublic(FabricTypeBase):
 class FabricTypeCreate(FabricTypeBase):
     name:str
     boiling_time: int
-    temp: float
+    boiling_temp: float

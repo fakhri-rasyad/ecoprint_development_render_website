@@ -67,8 +67,8 @@ def add_esps(new_esp: ESPCreate, session: SessionDep):
 def update_esp_user(
     current_user: Annotated[User, Depends(get_current_user)],
     esp_mac_address: str,
-    status: Status,
     session: SessionDep, 
+    status: Status | None = None,
 ):
     statement = select(ESP).where(ESP.esp_mac_address == esp_mac_address)
     esp = session.exec(statement).first()
