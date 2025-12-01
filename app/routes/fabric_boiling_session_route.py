@@ -61,7 +61,7 @@ async def add_session(new_session: FabricBoilingSessionCreate,
 
     check_active_session = session.exec(select(FabricBoilingSession).where(FabricBoilingSession.esp_id == esp.id).where(FabricBoilingSession.status.in_([Status.PREPARING, Status.RUNNING]))).first()
 
-    if check_active_session and check_active_session.status == Status.RUNNING:
+    if check_active_session:
         raise HTTPException(status_code=409, detail="ESP Is Being Used on Another Session")
 
     
