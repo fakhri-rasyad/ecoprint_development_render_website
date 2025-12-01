@@ -1,8 +1,8 @@
-"""initial clean schema
+"""new migration v2
 
-Revision ID: fd48417b67c0
+Revision ID: 07bc2ce028d0
 Revises: 
-Create Date: 2025-11-10 19:22:05.044293
+Create Date: 2025-12-01 11:48:05.356286
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'fd48417b67c0'
+revision: str = '07bc2ce028d0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,14 +25,14 @@ def upgrade() -> None:
     op.create_table('fabric_types',
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('boiling_time', sa.Integer(), nullable=False),
-    sa.Column('temp', sa.Float(), nullable=False),
+    sa.Column('boiling_temp', sa.Float(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_fabric_types_boiling_temp'), 'fabric_types', ['boiling_temp'], unique=False)
     op.create_index(op.f('ix_fabric_types_boiling_time'), 'fabric_types', ['boiling_time'], unique=False)
     op.create_index(op.f('ix_fabric_types_id'), 'fabric_types', ['id'], unique=False)
     op.create_index(op.f('ix_fabric_types_name'), 'fabric_types', ['name'], unique=False)
-    op.create_index(op.f('ix_fabric_types_temp'), 'fabric_types', ['temp'], unique=False)
     op.create_table('users',
     sa.Column('username', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -48,7 +48,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=False)
     op.create_table('esps',
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', name='status'), nullable=False),
+    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', 'PREPARING', 'CANCELED', name='status'), nullable=False),
     sa.Column('last_seen', sa.DateTime(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('esp_mac_address', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -56,14 +56,14 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_esps_esp_mac_address'), 'esps', ['esp_mac_address'], unique=False)
+    op.create_index(op.f('ix_esps_esp_mac_address'), 'esps', ['esp_mac_address'], unique=True)
     op.create_index(op.f('ix_esps_id'), 'esps', ['id'], unique=False)
     op.create_index(op.f('ix_esps_last_seen'), 'esps', ['last_seen'], unique=False)
     op.create_index(op.f('ix_esps_name'), 'esps', ['name'], unique=False)
     op.create_index(op.f('ix_esps_status'), 'esps', ['status'], unique=False)
     op.create_table('furnaces',
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', name='status'), nullable=False),
+    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', 'PREPARING', 'CANCELED', name='status'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -74,8 +74,8 @@ def upgrade() -> None:
     op.create_index(op.f('ix_furnaces_status'), 'furnaces', ['status'], unique=False)
     op.create_table('fabric_boiling_sessions',
     sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', name='status'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Enum('RUNNING', 'IDLE', 'DONE', 'OFFLINE', 'PREPARING', 'CANCELED', name='status'), nullable=False),
     sa.Column('start_time', sa.DateTime(), nullable=False),
     sa.Column('end_time', sa.DateTime(), nullable=True),
     sa.Column('esp_id', sa.Integer(), nullable=False),
@@ -91,11 +91,9 @@ def upgrade() -> None:
     sa.Column('humidity', sa.Float(), nullable=False),
     sa.Column('water_temp', sa.Float(), nullable=False),
     sa.Column('air_temp', sa.Float(), nullable=False),
-    sa.Column('is_started', sa.Boolean(), nullable=False),
-    sa.Column('is_done', sa.Boolean(), nullable=False),
     sa.Column('water_sufficient', sa.Boolean(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('timestamp', sa.DateTime(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('session_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['session_id'], ['fabric_boiling_sessions.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -103,8 +101,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_sensor_readings_air_temp'), 'sensor_readings', ['air_temp'], unique=False)
     op.create_index(op.f('ix_sensor_readings_humidity'), 'sensor_readings', ['humidity'], unique=False)
     op.create_index(op.f('ix_sensor_readings_id'), 'sensor_readings', ['id'], unique=False)
-    op.create_index(op.f('ix_sensor_readings_is_done'), 'sensor_readings', ['is_done'], unique=False)
-    op.create_index(op.f('ix_sensor_readings_is_started'), 'sensor_readings', ['is_started'], unique=False)
     op.create_index(op.f('ix_sensor_readings_timestamp'), 'sensor_readings', ['timestamp'], unique=False)
     op.create_index(op.f('ix_sensor_readings_water_sufficient'), 'sensor_readings', ['water_sufficient'], unique=False)
     op.create_index(op.f('ix_sensor_readings_water_temp'), 'sensor_readings', ['water_temp'], unique=False)
@@ -117,8 +113,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_sensor_readings_water_temp'), table_name='sensor_readings')
     op.drop_index(op.f('ix_sensor_readings_water_sufficient'), table_name='sensor_readings')
     op.drop_index(op.f('ix_sensor_readings_timestamp'), table_name='sensor_readings')
-    op.drop_index(op.f('ix_sensor_readings_is_started'), table_name='sensor_readings')
-    op.drop_index(op.f('ix_sensor_readings_is_done'), table_name='sensor_readings')
     op.drop_index(op.f('ix_sensor_readings_id'), table_name='sensor_readings')
     op.drop_index(op.f('ix_sensor_readings_humidity'), table_name='sensor_readings')
     op.drop_index(op.f('ix_sensor_readings_air_temp'), table_name='sensor_readings')
@@ -141,9 +135,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_index(op.f('ix_users_created_at'), table_name='users')
     op.drop_table('users')
-    op.drop_index(op.f('ix_fabric_types_temp'), table_name='fabric_types')
     op.drop_index(op.f('ix_fabric_types_name'), table_name='fabric_types')
     op.drop_index(op.f('ix_fabric_types_id'), table_name='fabric_types')
     op.drop_index(op.f('ix_fabric_types_boiling_time'), table_name='fabric_types')
+    op.drop_index(op.f('ix_fabric_types_boiling_temp'), table_name='fabric_types')
     op.drop_table('fabric_types')
     # ### end Alembic commands ###
