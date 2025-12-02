@@ -1,20 +1,37 @@
-from typing import Annotated
-from fastapi import Depends, FastAPI
-from sqlmodel import Session
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 import asyncio
 from app.core.telemetry_batcher import telemetry_batcher
-from app.database.create_db import get_session, create_db
+from app.core.error_logging import setup_error_logging
+import logging
 from app.routes import users_route, login_route, esp_route, furnace_route, ws_route, fabric_boiling_session_route, fabric_type_route, ws_route
 
+setup_error_logging()
 app = FastAPI()
+logger = logging.getLogger("global")
 
-# @app.on_event('startup')
-# async def startup_event():
-#     create_db()
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+    )
 
 @app.on_event("startup")
 async def start_batcher():
-    asyncio.create_task(telemetry_batcher.flush_loop())
+    try:
+        asyncio.create_task(telemetry_batcher.flush_loop())
+    except Exception:
+        logger.exception("Error on startup")
+
+
+@app.on_event("shutdown")
+async def stop_batcher():
+    try:
+        telemetry_batcher.stop()
+    except Exception:
+        logger.exception("Error on shutdown")
 
 app.include_router(users_route.router)
 app.include_router(login_route.router)
@@ -24,6 +41,3 @@ app.include_router(ws_route.router)
 app.include_router(fabric_boiling_session_route.router)
 app.include_router(fabric_type_route.router)
 
-@app.on_event("shutdown")
-async def stop_batcher():
-    telemetry_batcher.stop()

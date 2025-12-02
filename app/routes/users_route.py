@@ -23,7 +23,6 @@ def get_user(session: SessionDep, current_user: Annotated[User, Depends(get_curr
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-
 @router.post("/register")
 def add_user(user: UserCreate, session: SessionDep): # pyright: ignore[reportInvalidTypeForm]
 
