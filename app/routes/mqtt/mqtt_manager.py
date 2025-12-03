@@ -271,6 +271,8 @@ async def telemetry_handler(client, topic, payload, qos, properties):
                 logger.exception("Failed to publish completion to mobile for %s", session_id_done)
             try:
                 await publish_to_esp(mac, {"event": "session_stop", "session_id": session_id_done})
+                await publish_to_mobile(esp_mac_address=mac, payload={"event" : "Pengukusan selesai"})
+                await manager.disconnect_mobile(esp_mac_address=mac)
             except Exception:
                 logger.exception("Failed to publish session_stop to esp %s", mac)
 

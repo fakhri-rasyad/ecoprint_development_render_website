@@ -160,7 +160,7 @@ Membuat koneksi websocket dengan aplikasi mobile
 
 ### URL
 
-`ws://api.hiliriset-ecoprint.site/ws/mobile/{session_id}`
+`ws://www.hiliriset-ecoprint.site:8000/ws/mobile/{session_id}`
 
 ### Request Data
 
