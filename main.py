@@ -1,13 +1,14 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-import asyncio
-from app.core.telemetry_batcher import telemetry_batcher
 from app.core.error_logging import setup_error_logging
 import logging
 from app.routes import users_route, login_route, esp_route, furnace_route, ws_route, fabric_boiling_session_route, fabric_type_route, ws_route
+from app.routes.mqtt.mqtt_manager import lifespan
 
 setup_error_logging()
-app = FastAPI()
+
+
+app = FastAPI(lifespan=lifespan)
 logger = logging.getLogger("global")
 
 @app.exception_handler(Exception)
@@ -18,20 +19,22 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal Server Error"},
     )
 
-@app.on_event("startup")
-async def start_batcher():
-    try:
-        asyncio.create_task(telemetry_batcher.flush_loop())
-    except Exception:
-        logger.exception("Error on startup")
 
 
-@app.on_event("shutdown")
-async def stop_batcher():
-    try:
-        telemetry_batcher.stop()
-    except Exception:
-        logger.exception("Error on shutdown")
+# @app.on_event("startup")
+# async def start_batcher():
+#     try:
+#         asyncio.create_task(telemetry_batcher.flush_loop())
+#     except Exception:
+#         logger.exception("Error on startup")
+
+
+# @app.on_event("shutdown")
+# async def stop_batcher():
+#     try:
+#         telemetry_batcher.stop()
+#     except Exception:
+#         logger.exception("Error on shutdown")
 
 app.include_router(users_route.router)
 app.include_router(login_route.router)

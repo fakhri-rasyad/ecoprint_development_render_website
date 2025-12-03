@@ -13,7 +13,10 @@ from datetime import datetime, timedelta
 from cv2 import VideoCapture, imwrite
 from app.routes.websockets.connection_manager import manager
 from app.database.database_model.enum_classes import Status
+from app.routes.mqtt.mqtt_manager import fast_mqtt, publish_to_esp
+from app.routes.mqtt.mqtt_manager import cached_bs, SessionCacheEntry, SESSION_NOT_FOUND
 import uuid
+import json
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
@@ -78,13 +81,23 @@ async def add_session(new_session: FabricBoilingSessionCreate,
     session.refresh(esp)
     session.refresh(furnace)
 
-    if esp.esp_mac_address not in manager.active_esps:
-        raise HTTPException(status_code=400, detail="ESP is not connected via WebSocket")
+    # if esp.esp_mac_address not in manager.active_esps:
+    #     raise HTTPException(status_code=400, detail="ESP is not connected via WebSocket")
+    
+    cached_bs[esp.esp_mac_address] = SessionCacheEntry(
+        session_id=fabric_session.id,
+        status=fabric_session.status,
+        end_time=fabric_session.end_time
+    )
 
-    await manager.send_to_esp(esp.esp_mac_address, {
+
+    message = {
         "event": "session_start",
         "fabric_type": fabric_type.name,
         "boiling_temp": fabric_type.boiling_temp,
-    })
+    }
+
+    await publish_to_esp(esp_mac=esp.esp_mac_address, payload=json.dumps(message))
+    # await manager.send_to_esp(esp.esp_mac_address, message)
 
     return fabric_session

@@ -27,38 +27,28 @@ Projek ini merupakan backend yang dikembangkan untuk digunakan sebagai server ut
    uvicorn main:app --host 0.0.0.0 --port 8000
    ```
 
-# WebSocket Routes
+# MQTT Routes (Hanya untuk esp)
 
-## ESP Client
+ESP menggunakan MQTT untuk komunikasi data telemetry dan menerima perintah.
 
-Membuat koneksi websocket dengan ESP
+## Konfigurasi
 
-### URL
+| Parameter | nilai                       |
+| --------- | --------------------------- |
+| base_url  | www.hiliriset-ecoprint.site |
+| message   | 1833                        |
+| client_id | esp_client                  |
 
-`ws://api.hiliriset-ecoprint.site/ws/esps/{esp_mac_address}`
+## Topik
 
-### Request Data
+| topik                       | arah          | peran esp  |
+| --------------------------- | ------------- | ---------- |
+| "esp/{mac_address}/command  | server -> esp | subscriber |
+| esp/{mac_address}/telemetry | esp -> server | publisher  |
 
-Data yang perlu dikirimkan ke API merupakan string alamat MAC esp yang telah didaftarkan pada API
-| Parameter | Tipe Data | Deskripsi | Requirement Type |
-| ------------- |-------------| -----| ----- |
-| esp_mac_address | string | alamat_mac_address pengguna | required |
-
-### Contoh Request koneksi
-
-`ws://api.hiliriset-ecoprint.site/ws/esps/30:AE:A4:07:0D:64`
-
-### Response apabila ESP belum terdaftar
-
-```
-{
-   "event": "esp_not_registered"
-}
-```
-
-| Parameter | Tipe Data | Deskripsi          |
-| --------- | --------- | ------------------ |
-| event     | string    | Pesan error simpel |
+ESP menjadi publisher pada topic "esp/{mac_address}/telemetry"
+ESP menjadi subscriber pada topic ""esp/{esp_mac}/command"
+Data yang perlu dikirimkan merupakan string alamat MAC esp yang telah didaftarkan pada API
 
 ### Response apabila sesi tidak ada
 
