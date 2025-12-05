@@ -95,6 +95,7 @@ async def add_session(new_session: FabricBoilingSessionCreate,
         "event": "session_start",
         "fabric_type": fabric_type.name,
         "boiling_temp": fabric_type.boiling_temp,
+        "boiling_time" : fabric_type.boiling_time,
     }
 
     await publish_to_esp(esp_mac=esp.esp_mac_address, payload=json.dumps(message))
