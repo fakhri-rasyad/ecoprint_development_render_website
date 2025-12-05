@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Relationship, Field
 from typing import Optional, List
 from datetime import datetime
-from app.database.database_model.enum_classes import Status
+from app.core.enum.enum_classes import Status
 from zoneinfo import ZoneInfo
 
 class FabricBoilingSessionBase(SQLModel):
@@ -21,11 +21,11 @@ class FabricBoilingSession(FabricBoilingSessionBase, table=True):
     fabric_type_id: int = Field(foreign_key="fabric_types.id", nullable=False)
     furnace_id: int = Field(foreign_key="furnaces.id", nullable=False)
     
-    esp: Optional["ESP"] = Relationship(back_populates="fabric_boiling_sessions")
-    fabric_type: Optional["FabricType"] = Relationship(back_populates="fabric_boiling_sessions")
-    furnace: Optional["Furnace"] = Relationship(back_populates="fabric_boiling_sessions")
+    esp: Optional["ESP"] = Relationship(back_populates="fabric_boiling_sessions") # pyright: ignore[reportUndefinedVariable]
+    fabric_type: Optional["FabricType"] = Relationship(back_populates="fabric_boiling_sessions") # pyright: ignore[reportUndefinedVariable]
+    furnace: Optional["Furnace"] = Relationship(back_populates="fabric_boiling_sessions") # pyright: ignore[reportUndefinedVariable]
 
-    sensor_readings: List["SensorReading"] = Relationship(back_populates="fabric_boiling_session")
+    sensor_readings: List["SensorReading"] = Relationship(back_populates="fabric_boiling_session") # pyright: ignore[reportUndefinedVariable]
 
 class FabricBoilingSessionPublic(FabricBoilingSessionBase):
     id: int

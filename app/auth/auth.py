@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
 from app.database.create_db import SessionDep
 from app.database.database_model.user_model import User
-from app.auth.encryption import password_hash
 import jwt
 from jwt.exceptions import InvalidTokenError
 from typing import Annotated

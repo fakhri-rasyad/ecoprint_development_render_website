@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, status
 from app.database.create_db import SessionDep
 from app.database.database_model.fabric_type_model import FabricType, FabricTypeCreate
 from sqlmodel import select
@@ -17,7 +17,7 @@ def get_fabric_info(fabric_id:int, session: SessionDep):
     statemet = select(FabricType).where(FabricType.id == fabric_id)
     fabric =  session.exec(statemet).first()
     if not fabric:
-        raise HTTPException(status_code=404, detail="Fabric Type not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fabric Type not Found")
     return fabric
 
 @router.post("/add", response_model=FabricType)
@@ -25,7 +25,7 @@ def add_fabric_type(new_fabric: FabricTypeCreate, session: SessionDep):
 
     fabric_type = session.exec(select(FabricType).where(FabricType.name == new_fabric.name)).first()
     if fabric_type:
-        raise HTTPException(status_code=409, detail="Fabric Already Exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Fabric Already Exists")
 
     fabric = FabricType(
         name=new_fabric.name,

@@ -1,9 +1,8 @@
-from app.database.database_model.user_model import User, UserBase
+from app.database.database_model.user_model import User
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from sqlmodel import Session, select
-from app.database.create_db import get_session
+from sqlmodel import select
 
 from app.auth.auth import Token, ACCESS_TOKEN_EXPIRE_MINUTE, create_access_token
 from app.auth.encryption import password_hash

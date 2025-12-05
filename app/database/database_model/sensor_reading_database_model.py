@@ -15,7 +15,7 @@ class SensorReading(SensorReadingBase, table=True):
     timestamp: Optional[datetime] = Field(index=True)
 
     session_id: Optional[int] = Field(default=None, foreign_key="fabric_boiling_sessions.id")
-    fabric_boiling_session: Optional["FabricBoilingSession"] = Relationship(back_populates="sensor_readings")
+    fabric_boiling_session: Optional["FabricBoilingSession"] = Relationship(back_populates="sensor_readings") # pyright: ignore[reportUndefinedVariable]
 
 class SensorReadingPublic(SensorReadingBase):
     id: int

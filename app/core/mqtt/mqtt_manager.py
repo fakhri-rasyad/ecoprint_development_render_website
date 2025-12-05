@@ -19,9 +19,9 @@ from app.database.database_model.esp_database_model import ESP
 from app.database.database_model.boiling_session_model import FabricBoilingSession
 from app.database.database_model.fabric_type_model import FabricType
 from app.database.database_model.furnace_database_model import Furnace
-from app.database.database_model.enum_classes import Status
+from app.core.enum.enum_classes import Status
 from app.core.telemetry_batcher import telemetry_batcher
-from app.routes.websockets.connection_manager import manager
+from app.core.websockets.connection_manager import manager
 
 logger = logging.getLogger("global")
 MQTT_HOST = "localhost"

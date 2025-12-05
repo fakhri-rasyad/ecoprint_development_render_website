@@ -1,7 +1,6 @@
 # app/core/telemetry_batcher.py
 import asyncio
 from sqlalchemy import insert
-from sqlmodel import Session
 from app.database.database import engine
 from app.database.database_model.sensor_reading_database_model import SensorReading
 

@@ -13,8 +13,8 @@ class User(UserBase, table=True):
     password_hash: str = Field(index=True, nullable=False)
     created_at: datetime = Field(index=True, default=datetime.now(ZoneInfo("Asia/Makassar")))
 
-    esps : List["ESP"]= Relationship(back_populates="user")
-    furnaces:List["Furnace"] = Relationship(back_populates="user")
+    esps : List["ESP"]= Relationship(back_populates="user") # pyright: ignore[reportUndefinedVariable]
+    furnaces:List["Furnace"] = Relationship(back_populates="user") # pyright: ignore[reportUndefinedVariable]
 
 class UserPublic(UserBase):
     id: int

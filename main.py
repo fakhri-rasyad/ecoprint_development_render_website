@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from app.core.error_logging import setup_error_logging
 import logging
 from app.routes import users_route, login_route, esp_route, furnace_route, ws_route, fabric_boiling_session_route, fabric_type_route, ws_route, sensor_reading_route
-from app.routes.mqtt.mqtt_manager import lifespan
+from app.core.mqtt.mqtt_manager import lifespan
 
 setup_error_logging()
 
@@ -15,26 +15,9 @@ logger = logging.getLogger("global")
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception(f"Unhandled exception: {exc}")
     return JSONResponse(
-        status_code=500,
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal Server Error"},
     )
-
-
-
-# @app.on_event("startup")
-# async def start_batcher():
-#     try:
-#         asyncio.create_task(telemetry_batcher.flush_loop())
-#     except Exception:
-#         logger.exception("Error on startup")
-
-
-# @app.on_event("shutdown")
-# async def stop_batcher():
-#     try:
-#         telemetry_batcher.stop()
-#     except Exception:
-#         logger.exception("Error on shutdown")
 
 app.include_router(users_route.router)
 app.include_router(login_route.router)

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status as fa_status
 from sqlmodel import select
 from app.database.database_model.user_model import User
 from app.database.database_model.furnace_database_model import FurnaceCreate, FurnaceUpdate, FurnacePublic, Furnace
-from app.database.database_model.enum_classes import Status
+from app.core.enum.enum_classes import Status
 from app.database.create_db import SessionDep
 from typing import Annotated
 from app.auth.auth import get_current_user
@@ -11,28 +11,18 @@ router = APIRouter(prefix="/furnace", tags=["Furnace"])
 
 
 @router.get("/all", response_model=list[FurnacePublic])
-def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,session: SessionDep):
+def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,session: SessionDep, type: Status = None):
     statement = select(Furnace).where(Furnace.user_id==current_user.id)
+    if type:
+        statement = statement.where(Furnace.status == type)
     furnaces= session.exec(statement).all()
     return furnaces
-
-@router.get("/idle", response_model=list[FurnacePublic])
-def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,session: SessionDep):
-    statement = select(Furnace).where(Furnace.user_id==current_user.id).where(Furnace.status == Status.IDLE)
-    furnaces= session.exec(statement).all()
-    return furnaces
-
-@router.get("/running", response_model=list[FurnacePublic])
-def get_furnaces(current_user: Annotated[User, Depends(get_current_user)] ,session: SessionDep):
-    statement = select(Furnace).where(Furnace.user_id==current_user.id).where(Furnace.status == Status.RUNNING)
-    furnaces= session.exec(statement).all()
-    return furnaces
-
+    
 @router.get("/{furnace_id}", response_model=FurnacePublic)
 def get_furnace(furnace_id: int, session: SessionDep, current_user: Annotated[User, Depends(get_current_user)]):
     furnace = session.get(Furnace, furnace_id)
     if not furnace or furnace.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Furnace not found")
+        raise HTTPException(status_code=fa_status.HTTP_404_NOT_FOUND, detail="Furnace not found")
     return furnace
 
 @router.post("/create", response_model=FurnacePublic)
@@ -54,7 +44,7 @@ def update_furnace(furnace_id:int, update_furnace: FurnaceUpdate, status:Status,
     furnace = session.exec(select_statement).first()
     print(furnace)
     if not furnace:
-        raise HTTPException(status_code=404, detail="furnace not found")
+        raise HTTPException(status_code=fa_status.HTTP_404_NOT_FOUND, detail="Furnace not found")
 
     update_data = update_furnace.dict(exclude_unset=True)
     for key, value in update_data.items():

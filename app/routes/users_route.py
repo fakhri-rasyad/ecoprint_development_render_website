@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from app.database.database_model.user_model import User, UserBase, UserCreate, UserPublic, UserUpdate
+from fastapi import APIRouter, HTTPException, Depends, status
+from app.database.database_model.user_model import User, UserCreate, UserPublic
 from app.database.create_db import SessionDep
 from app.auth.encryption import password_hash
 from app.auth.auth import get_current_user
@@ -20,7 +20,7 @@ def get_user(session: SessionDep, current_user: Annotated[User, Depends(get_curr
     user_id = current_user.id
     user = session.get(entity=User, ident=user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 @router.post("/register")
@@ -30,7 +30,7 @@ def add_user(user: UserCreate, session: SessionDep): # pyright: ignore[reportInv
         statement = select(User).where(User.email == user.email)
         exist_user = session.exec(statement=statement).first()
         if exist_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email already registered")
         
     hashed_password = password_hash.hash(user.password)
 
