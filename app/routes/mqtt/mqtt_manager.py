@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi_mqtt.config import MQTTConfig
 from fastapi_mqtt.fastmqtt import FastMQTT
 from sqlmodel import select, Session as SQLSession
+from zoneinfo import ZoneInfo
 
 from app.database.database import engine
 from app.database.database_model.esp_database_model import ESP
@@ -110,13 +111,13 @@ def db_update_session_state_on_telemetry(session_id: int, event: Optional[str]):
                 bs.status = Status.RUNNING
                 fabric = db.exec(select(FabricType).where(FabricType.id == bs.fabric_type_id)).first()
                 if fabric and getattr(fabric, "boiling_time", None):
-                    bs.end_time = datetime.now() + timedelta(minutes=int(fabric.boiling_time))
+                    bs.end_time = datetime.now(ZoneInfo("Asia/Makassar")) + timedelta(minutes=int(fabric.boiling_time))
                 changed = True
 
-            if bs.end_time and datetime.now() >= bs.end_time:
+            if bs.end_time and datetime.now(ZoneInfo("Asia/Makassar")) >= bs.end_time:
                 session_id_local = bs.id
                 bs.status = Status.DONE
-                bs.end_time = datetime.now()
+                bs.end_time = datetime.now(ZoneInfo("Asia/Makassar"))
 
                 furnace = db.exec(select(Furnace).where(Furnace.id == bs.furnace_id)).first()
                 if furnace:
@@ -249,7 +250,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
             "water_temp": float(data["water_temperature"]),
             "air_temp": float(data["air_temperature"]),
             "water_sufficient": bool(data["water_sufficient"]),
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now(ZoneInfo("Asia/Makassar")),
         }
     except Exception:
         logger.exception("Bad payload values from %s", mac)

@@ -15,6 +15,7 @@ from app.routes.websockets.connection_manager import manager
 from app.database.database_model.enum_classes import Status
 from app.routes.mqtt.mqtt_manager import fast_mqtt, publish_to_esp
 from app.routes.mqtt.mqtt_manager import cached_bs, SessionCacheEntry, SESSION_NOT_FOUND
+from zoneinfo import ZoneInfo
 import uuid
 import json
 
@@ -32,7 +33,7 @@ def get_fabric_image(current_user: Annotated[User, Depends(get_current_user)], s
     
     cam = VideoCapture(0)
 
-    filename = f"Fabric Image {datetime.now().strftime('%H-%M-%S_%d-%m-%Y')}.jpg"
+    filename = f"Fabric Image {datetime.now(ZoneInfo("Asia/Makassar")).strftime('%H-%M-%S_%d-%m-%Y')}.jpg"
 
     ret, frame = cam.read()
     if ret:

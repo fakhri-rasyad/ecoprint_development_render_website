@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List
+from zoneinfo import ZoneInfo
 
 class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False)
@@ -10,7 +11,7 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: int = Field(primary_key=True, index=True)
     password_hash: str = Field(index=True, nullable=False)
-    created_at: datetime = Field(index=True, default=datetime.now())
+    created_at: datetime = Field(index=True, default=datetime.now(ZoneInfo("Asia/Makassar")))
 
     esps : List["ESP"]= Relationship(back_populates="user")
     furnaces:List["Furnace"] = Relationship(back_populates="user")

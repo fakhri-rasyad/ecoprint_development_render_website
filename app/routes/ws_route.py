@@ -16,6 +16,7 @@ from app.database.database_model.sensor_reading_database_model import SensorRead
 from app.database.database_model.enum_classes import Status
 from app.core.telemetry_batcher import telemetry_batcher
 from app.database.database import engine
+from zoneinfo import ZoneInfo
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
 
@@ -33,7 +34,7 @@ def bg_mark_session_running_and_set_end(session_id: int):
             bs.status = Status.RUNNING
             fabric = db.exec(select(FabricType).where(FabricType.id == bs.fabric_type_id)).first()
             if fabric and getattr(fabric, "boiling_time", None):
-                bs.end_time = datetime.now() + timedelta(minutes=int(fabric.boiling_time))
+                bs.end_time = datetime.now(ZoneInfo("Asia/Makassar")) + timedelta(minutes=int(fabric.boiling_time))
             db.add(bs)
             db.commit()
     except Exception:
@@ -47,7 +48,7 @@ def bg_mark_session_done_and_release(session_id: int):
             if not bs:
                 return
             bs.status = Status.DONE
-            bs.end_time = datetime.now()
+            bs.end_time = datetime.now(ZoneInfo("Asia/Makassar"))
 
             furnace = db.exec(select(Furnace).where(Furnace.id == bs.furnace_id)).first()
             if furnace:
