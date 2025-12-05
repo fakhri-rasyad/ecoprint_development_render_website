@@ -28,22 +28,22 @@ def get_all_sessions(current_user: Annotated[User, Depends(get_current_user)], s
     return session_list
 
 
-@router.get("/take_image", response_class=FileResponse)
-def get_fabric_image(current_user: Annotated[User, Depends(get_current_user)], session: SessionDep): # pyright: ignore[reportInvalidTypeForm]
+# @router.get("/take_image", response_class=FileResponse)
+# def get_fabric_image(current_user: Annotated[User, Depends(get_current_user)], session: SessionDep): # pyright: ignore[reportInvalidTypeForm]
     
-    cam = VideoCapture(0)
+#     cam = VideoCapture(0)
 
-    filename = f"Fabric Image {datetime.now(ZoneInfo("Asia/Makassar")).strftime('%H-%M-%S_%d-%m-%Y')}.jpg"
+#     filename = f"Fabric Image {datetime.now(ZoneInfo("Asia/Makassar")).strftime('%H-%M-%S_%d-%m-%Y')}.jpg"
 
-    ret, frame = cam.read()
-    if ret:
-        imwrite(filename, frame) 
-    else:
-        raise HTTPException(status_code=403, detail="Failed to capture image")
+#     ret, frame = cam.read()
+#     if ret:
+#         imwrite(filename, frame) 
+#     else:
+#         raise HTTPException(status_code=403, detail="Failed to capture image")
     
-    cam.release()
-    imwrite(filename, frame)
-    return FileResponse(filename, media_type="image/jpeg")
+#     cam.release()
+#     imwrite(filename, frame)
+#     return FileResponse(filename, media_type="image/jpeg")
 
 @router.post("/create", response_model=FabricBoilingSessionPublic)
 async def add_session(new_session: FabricBoilingSessionCreate, 
