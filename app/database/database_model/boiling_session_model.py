@@ -2,7 +2,6 @@ from sqlmodel import SQLModel, Relationship, Field
 from typing import Optional, List
 from datetime import datetime
 from app.core.enum.enum_classes import Status
-from zoneinfo import ZoneInfo
 
 class FabricBoilingSessionBase(SQLModel):
     notes: Optional[str] = None
@@ -13,8 +12,8 @@ class FabricBoilingSession(FabricBoilingSessionBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     
     status: Status = Field(default=Status.PREPARING)
-    start_time: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("Asia/Makassar"))
-)
+    start_time: datetime = Field(default_factory=datetime.now)
+
     end_time: Optional[datetime] = None
 
     esp_id: int = Field(foreign_key="esps.id", nullable=False)

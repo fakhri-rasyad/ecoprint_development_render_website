@@ -11,7 +11,6 @@ from fastapi_mqtt.config import MQTTConfig
 from fastapi_mqtt.fastmqtt import FastMQTT
 
 from sqlmodel import select, Session as SQLSession
-from zoneinfo import ZoneInfo
 
 from app.core.mqtt.SessionCacheEntry import SessionCacheEntry
 from app.database.database import engine
@@ -41,7 +40,6 @@ fast_mqtt = FastMQTT(
 
 ESP_TIMEOUT_SECONDS = 60
 REQUIRED_FIELDS = ["humidity", "water_temperature", "air_temperature", "water_sufficient"]
-makassar = ZoneInfo("Asia/Makassar")
 ONE_MIN = timedelta(minutes=1)
 
 
@@ -80,7 +78,7 @@ def mark_session(session_id: int, session_status: Status, end_time: Optional[dat
             return
 
         bs.status = session_status
-        bs.end_time = end_time or datetime.now(makassar)
+        bs.end_time = end_time or datetime.now()
 
         if session_status in (Status.DONE, Status.CANCELED):
             furnace = db.exec(select(Furnace).where(Furnace.id == bs.furnace_id)).first()
@@ -96,21 +94,13 @@ def mark_session(session_id: int, session_status: Status, end_time: Optional[dat
         db.add(bs)
         db.commit()
 
-
-def ensure_tz(dt: Optional[datetime]):
-    """Ensure datetime has timezone."""
-    if not dt:
-        return None
-    return dt if dt.tzinfo else dt.replace(tzinfo=makassar)
-
-
 def db_update_session_state_on_telemetry(session_id: int, event: Optional[str]):
     with SQLSession(engine) as db:
         bs = db.get(FabricBoilingSession, session_id)
         if not bs:
             return None
 
-        now = datetime.now(makassar)
+        now = datetime.now()
 
         if bs.status == Status.PREPARING and event == "steaming":
             fabric = db.exec(select(FabricType).where(FabricType.id == bs.fabric_type_id)).first()
@@ -128,8 +118,6 @@ def db_update_session_state_on_telemetry(session_id: int, event: Optional[str]):
                 "end_time": bs.end_time
             }
 
-        bs.end_time = ensure_tz(bs.end_time)
-
         if bs.end_time and now >= bs.end_time:
             mark_session(bs.id, Status.DONE, bs.end_time)
             return {"done": True, "session_id": bs.id}
@@ -145,13 +133,12 @@ def db_update_session_state_on_telemetry(session_id: int, event: Optional[str]):
 async def esp_inactivity_checker():
     while True:
         try:
-            now = datetime.now(makassar)
+            now = datetime.now()
             states_last_seen = await state.get_all_esp_last_seen()
 
             for mac, last_seen in list(states_last_seen.items()):
                 entry = await state.get_session(mac)
                 if entry:
-                    entry.end_time = ensure_tz(entry.end_time)
                     if entry.end_time and now >= entry.end_time:
                         await handle_esp_timeout(mac)
                         await state.remove_esp(mac)
@@ -173,8 +160,7 @@ async def handle_esp_timeout(mac: str):
     if not entry:
         return
 
-    now = datetime.now(makassar)
-    entry.end_time = ensure_tz(entry.end_time)
+    now = datetime.now()
     last_seen = await state.get_esp_last_seen(mac)
 
     # Determine final status
@@ -261,7 +247,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
             "water_temp": float(data["water_temperature"]),
             "air_temp": float(data["air_temperature"]),
             "water_sufficient": bool(data["water_sufficient"]),
-            "timestamp": datetime.now(makassar),
+            "timestamp": datetime.now(),
         }
     except Exception:
         logger.exception("Bad telemetry values")
@@ -284,7 +270,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
             await state.set_session(mac, SessionCacheEntry(
                 session_id=result["session_id"],
                 status=result["status"],
-                end_time=ensure_tz(result["end_time"]),
+                end_time=result["end_time"],
             ))
 
         # Session finished
@@ -292,7 +278,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
             await state.set_session(mac, SessionCacheEntry(
                 session_id=result["session_id"],
                 status=Status.DONE,
-                end_time=ensure_tz(result["end_time"]),
+                end_time=result["end_time"],
             ))
 
             await safe_publish_mobile(mac, {"event": "session_complete"})

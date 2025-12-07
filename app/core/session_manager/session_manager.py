@@ -1,7 +1,6 @@
 from typing import Optional, Dict, Any
 import asyncio
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from app.core.mqtt.SessionCacheEntry import SessionCacheEntry
 
 
@@ -29,7 +28,7 @@ class SessionStateManager:
         
     async def update_esp_seen(self, esp_id: str):
         async with self._lock:
-            self.esp_last_seen[esp_id] = datetime.now(ZoneInfo("Asia/Makassar"))
+            self.esp_last_seen[esp_id] = datetime.now()
 
     async def get_esp_last_seen(self, esp_id: str) -> Optional[datetime]:
         async with self._lock:

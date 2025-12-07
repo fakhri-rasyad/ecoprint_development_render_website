@@ -11,10 +11,7 @@ from app.database.create_db import SessionDep
 from typing import Annotated
 from app.auth.auth import get_current_user
 from app.core.enum.enum_classes import Status
-import uuid
 import json
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
