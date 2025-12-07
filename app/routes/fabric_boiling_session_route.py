@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
-from app.core.mqtt.mqtt_manager import SessionCacheEntry, publish_to_esp, cached_bs
+from app.core.mqtt.SessionCacheEntry import SessionCacheEntry
+from app.core.mqtt.mqtt_manager import safe_publish_esp, state
 from app.database.database_model.user_model import User
 from app.database.database_model.esp_database_model import ESP
 from app.database.database_model.fabric_type_model import FabricType
@@ -12,6 +13,8 @@ from app.auth.auth import get_current_user
 from app.core.enum.enum_classes import Status
 import uuid
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 router = APIRouter(prefix="/sessions", tags=["FabricBoilingSession"])
 
@@ -71,10 +74,15 @@ async def add_session(new_session: FabricBoilingSessionCreate,
     session.refresh(esp)
     session.refresh(furnace)
 
-    cached_bs[esp.esp_mac_address] = SessionCacheEntry(
+    session_cache = SessionCacheEntry(
         session_id=fabric_session.id,
         status=fabric_session.status,
-        end_time=fabric_session.end_time
+        end_time=None
+    )
+
+    await state.set_session(
+        esp_mac=esp.esp_mac_address,
+        data=session_cache
     )
 
     message = {
@@ -83,7 +91,6 @@ async def add_session(new_session: FabricBoilingSessionCreate,
         "boiling_temp": fabric_type.boiling_temp,
         "boiling_time" : fabric_type.boiling_time,
     }
-
-    await publish_to_esp(esp_mac=esp.esp_mac_address, payload=json.dumps(message))
-
+    await safe_publish_esp(mac=esp.esp_mac_address, payload=json.dumps(message))
+    await state.update_esp_seen(esp.esp_mac_address)
     return fabric_session
