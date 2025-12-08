@@ -195,7 +195,7 @@ async def handle_esp_timeout(mac: str):
 
 async def safe_publish_esp(mac: str, payload: dict):
     try:
-        fast_mqtt.publish(f"esp/{mac}/command", json.dumps(payload))
+        fast_mqtt.publish(f"esp/{mac}/command", payload)
     except Exception:
         logger.exception("Publish to ESP failed")
 

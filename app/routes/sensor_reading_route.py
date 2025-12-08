@@ -13,3 +13,17 @@ async def get_users_sensor_readings(session_id:int,  current_user: Annotated[Use
     command = select(SensorReading).where(SensorReading.session_id == session_id)
     all_sensor = session.exec(command).all()
     return all_sensor
+
+@router.get("/{session_id}/avg")
+async def get_session_average_value(session_id: int, current_user:Annotated[User, Depends(get_current_user)], session: SessionDep):
+    statement = select(SensorReading).where(SensorReading.session_id == session_id)
+    all_reading=session.exec(statement).all()
+
+    
+
+    if len(all_reading) > 0:
+        temp_average = sum([x.water_temp for x in all_reading])/len(all_reading)
+    else:
+        temp_average = 0
+
+    return {"TEST": temp_average, "length" : len(all_reading)}

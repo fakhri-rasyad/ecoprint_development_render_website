@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "localhost"
 PORT = 1883
-ESP_MAC = "AA:BB:CC:DD:EE:FF"
+ESP_MAC = "AA:BB:CC:DD:EE"
 
 started = False
 data_count = 0
@@ -21,8 +21,10 @@ def on_message(client, userdata, msg):
     global started
     payload = msg.payload.decode()
     print(f"[ESP MOCK] Received: {payload}")
+    # first load → gives you a JSON string
+    data = json.loads(payload) 
 
-    event = json.loads(payload).get("event")
+    event = data.get("event")
 
     if event == "session_start":
         started = True

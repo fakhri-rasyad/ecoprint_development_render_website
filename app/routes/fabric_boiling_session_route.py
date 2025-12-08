@@ -88,6 +88,6 @@ async def add_session(new_session: FabricBoilingSessionCreate,
         "boiling_temp": fabric_type.boiling_temp,
         "boiling_time" : fabric_type.boiling_time,
     }
-    await safe_publish_esp(mac=esp.esp_mac_address, payload=json.dumps(message))
+    await safe_publish_esp(mac=esp.esp_mac_address, payload=message)
     await state.update_esp_seen(esp.esp_mac_address)
     return fabric_session
