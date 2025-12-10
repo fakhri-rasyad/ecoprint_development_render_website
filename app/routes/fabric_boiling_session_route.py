@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
+from sqlalchemy import delete
 from app.core.mqtt.SessionCacheEntry import SessionCacheEntry
 from app.core.mqtt.mqtt_manager import safe_publish_esp, state
 from app.database.database_model.user_model import User
@@ -7,6 +8,7 @@ from app.database.database_model.esp_database_model import ESP
 from app.database.database_model.fabric_type_model import FabricType
 from app.database.database_model.furnace_database_model import Furnace
 from app.database.database_model.boiling_session_model import FabricBoilingSession, FabricBoilingSessionCreate, FabricBoilingSessionPublic
+from app.database.database_model.sensor_reading_database_model import SensorReading
 from app.database.create_db import SessionDep
 from typing import Annotated
 from app.auth.auth import get_current_user
@@ -91,3 +93,44 @@ async def add_session(new_session: FabricBoilingSessionCreate,
     await safe_publish_esp(mac=esp.esp_mac_address, payload=message)
     await state.update_esp_seen(esp.esp_mac_address)
     return fabric_session
+
+
+@router.delete("/delete/{session_id}")
+async def delete_session(session_id: int,
+                         current_user: Annotated[User, Depends(get_current_user)],
+                         session: SessionDep):
+
+    boiling_session = session.exec(
+        select(FabricBoilingSession).where(FabricBoilingSession.id == session_id)
+    ).first()
+
+    if not boiling_session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session tidak ditemukan"
+        )
+
+    esp = session.exec(select(ESP).where(ESP.id == boiling_session.esp_id)).first()
+    furnace = session.exec(select(Furnace).where(Furnace.id == boiling_session.furnace_id)).first()
+
+    if not esp or not furnace:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ESP atau Furnace tidak valid"
+        )
+
+    session.exec(delete(SensorReading).where(SensorReading.session_id == session_id))
+
+    session.delete(boiling_session)
+
+    esp.status = Status.IDLE
+    furnace.status = Status.IDLE
+
+    session.commit()
+    session.refresh(esp)
+    session.refresh(furnace)
+
+    await state.remove_session(esp.esp_mac_address)
+    await safe_publish_esp(mac=esp.esp_mac_address, payload={"event": "session_stop"})
+
+    return {"message": "Session deleted successfully"}
