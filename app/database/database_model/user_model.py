@@ -10,6 +10,7 @@ class User(UserBase, table=True):
     __tablename__ = "users"
     id: int = Field(primary_key=True, index=True)
     password_hash: str = Field(index=True, nullable=False)
+    fcm_token:str = Field(index=True, nullable=True)
     created_at: datetime = Field(index=True, default_factory=datetime.now)
 
     esps : List["ESP"]= Relationship(back_populates="user") # pyright: ignore[reportUndefinedVariable]
