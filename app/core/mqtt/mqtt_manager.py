@@ -46,30 +46,30 @@ ONE_MIN = timedelta(minutes=1)
 # -------------------------------------------------
 # LIFESPAN
 # -------------------------------------------------
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        asyncio.create_task(telemetry_batcher.flush_loop())
-        asyncio.create_task(esp_inactivity_checker())
-        logger.info("Telemetry batcher + inactivity checker started")
-    except Exception:
-        logger.exception("Startup error")
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     try:
+#         asyncio.create_task(telemetry_batcher.flush_loop())
+#         asyncio.create_task(esp_inactivity_checker())
+#         logger.info("Telemetry batcher + inactivity checker started")
+#     except Exception:
+#         logger.exception("Startup error")
 
-    await fast_mqtt.mqtt_startup()
-    logger.info("MQTT started")
+#     await fast_mqtt.mqtt_startup()
+#     logger.info("MQTT started")
 
-    try:
-        yield
-    finally:
-        try:
-            telemetry_batcher.stop()
-        except Exception:
-            logger.exception("Stopping telemetry batcher failed")
+#     try:
+#         yield
+#     finally:
+#         try:
+#             telemetry_batcher.stop()
+#         except Exception:
+#             logger.exception("Stopping telemetry batcher failed")
 
-        try:
-            await fast_mqtt.mqtt_shutdown()
-        except Exception:
-            logger.exception("MQTT shutdown failed")
+#         try:
+#             await fast_mqtt.mqtt_shutdown()
+#         except Exception:
+#             logger.exception("MQTT shutdown failed")
 
 def mark_session(session_id: int, session_status: Status, end_time: Optional[datetime] = None):
     with SQLSession(engine) as db:
