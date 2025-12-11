@@ -106,3 +106,6 @@ venv.bak/
 
 # Mac OS
 .DS_Store
+
+#Firebase auth json
+hiliriset-ecoprint-firebase-adminsdk-fbsvc-89f1f2d9dc.json

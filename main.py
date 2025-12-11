@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from app.core.error_logging import setup_error_logging
+from app.core.firebase.firebase_manager import firebase
 import logging
 from contextlib import asynccontextmanager
 import asyncio
@@ -9,6 +10,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.telemetry_batcher import telemetry_batcher
 from app.core.mqtt.mqtt_manager import fast_mqtt, esp_inactivity_checker
+
+
 
 from app.routes import (
     users_route,

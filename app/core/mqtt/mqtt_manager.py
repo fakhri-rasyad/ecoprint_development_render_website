@@ -1,12 +1,10 @@
 # app/routes/mqtt/mqtt_manager.py
-from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Optional
 import asyncio
 import json
 import logging
 
-from fastapi import FastAPI
 from fastapi_mqtt.config import MQTTConfig
 from fastapi_mqtt.fastmqtt import FastMQTT
 
@@ -22,6 +20,7 @@ from app.core.enum.enum_classes import Status
 from app.core.telemetry_batcher import telemetry_batcher
 from app.core.websockets.connection_manager import manager
 from app.core.session_manager.session_manager import SessionStateManager
+from app.core.firebase.firebase_manager import firebase
 
 logger = logging.getLogger("global")
 state = SessionStateManager()
@@ -192,6 +191,8 @@ async def handle_esp_timeout(mac: str):
 
     await manager.disconnect_mobile(mac)
 
+    await firebase.send_message_async(esp_mac=mac, event=status)
+
 
 async def safe_publish_esp(mac: str, payload: dict):
     try:
@@ -283,6 +284,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
 
             await safe_publish_mobile(mac, {"event": "session_complete"})
             await safe_publish_esp(mac, {"event": "session_stop"})
+            await firebase.send_message_async(esp_mac=mac, event=Status.DONE)
             await manager.disconnect_mobile(mac)
             await state.remove_session(mac)
             await state.remove_esp(mac)
