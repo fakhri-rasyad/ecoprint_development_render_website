@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+
+  database:
+    image: postgres:18
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ecoprint
+  mqtt:
+    image: eclipse/mosquitto:1.4.8
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto_conf/config:/mosquitto/config
+      - ./mosquitto_conf/data:/mosquitto/data
+      - ./mosquitto_conf/log:/mosquttio/log
+    restart: unless-stopped
+networks:
+  default:
+    name: ecoprint-network

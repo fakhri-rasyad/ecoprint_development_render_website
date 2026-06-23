@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = getenv("DATABASE_URL")
+FASTAPI_DATABASE_URL = getenv("FASTAPI_DATABASE_URL")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if FASTAPI_DATABASE_URL and FASTAPI_DATABASE_URL.startswith("postgres://"):
+    FASTAPI_DATABASE_URL = FASTAPI_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(FASTAPI_DATABASE_URL, echo=True)
 

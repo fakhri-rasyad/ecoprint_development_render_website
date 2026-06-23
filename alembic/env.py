@@ -5,18 +5,24 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.database.database import DATABASE_URL
+# from app.database.database import DATABASE_URL
 from sqlmodel import SQLModel
 import configparser
 
 from app.database.database_model import *
 
+from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ALEMBIC_DATABASE_URL = getenv("ALEMBIC_DATABASE_URL")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 config.file_config = configparser.ConfigParser(interpolation=None)
-config.set_main_option('sqlalchemy.url', DATABASE_URL)
+config.set_main_option('sqlalchemy.url', ALEMBIC_DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -48,7 +54,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=DATABASE_URL,
+        url=ALEMBIC_DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         compare_types=True,

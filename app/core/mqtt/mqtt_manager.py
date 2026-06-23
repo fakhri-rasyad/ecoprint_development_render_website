@@ -20,13 +20,18 @@ from app.core.enum.enum_classes import Status
 from app.core.telemetry_batcher import telemetry_batcher
 from app.core.websockets.connection_manager import manager
 from app.core.session_manager.session_manager import SessionStateManager
-from app.core.firebase.firebase_manager import firebase
+# from app.core.firebase.firebase_manager import firebase
+
+from os import getenv
+from dotenv import load_dotenv
 
 logger = logging.getLogger("global")
 state = SessionStateManager()
 
-MQTT_HOST = "localhost"
-MQTT_PORT = 1883
+load_dotenv()
+
+MQTT_HOST = getenv("MQTT_HOST")
+MQTT_PORT = getenv("MQTT_PORT")
 MQTT_CLIENT_ID = "fastapi_server"
 
 fast_mqtt = FastMQTT(
@@ -191,7 +196,7 @@ async def handle_esp_timeout(mac: str):
 
     await manager.disconnect_mobile(mac)
 
-    await firebase.send_message_async(esp_mac=mac, event=status)
+    # await firebase.send_message_async(esp_mac=mac, event=status)
 
 
 async def safe_publish_esp(mac: str, payload: dict):
@@ -284,7 +289,7 @@ async def telemetry_handler(client, topic, payload, qos, properties):
 
             await safe_publish_mobile(mac, {"event": "session_complete"})
             await safe_publish_esp(mac, {"event": "session_stop"})
-            await firebase.send_message_async(esp_mac=mac, event=Status.DONE)
+            # await firebase.send_message_async(esp_mac=mac, event=Status.DONE)
             await manager.disconnect_mobile(mac)
             await state.remove_session(mac)
             await state.remove_esp(mac)

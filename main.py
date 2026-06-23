@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from app.core.error_logging import setup_error_logging
-from app.core.firebase.firebase_manager import firebase
+# from app.core.firebase.firebase_manager import firebase
 import logging
 from contextlib import asynccontextmanager
 import asyncio
@@ -39,10 +39,11 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(telemetry_batcher.flush_loop())
     asyncio.create_task(esp_inactivity_checker())
 
-    await fast_mqtt.mqtt_startup()
-    logger.info("MQTT started")
-
-   
+    try:
+        await fast_mqtt.mqtt_startup()
+        logger.info("MQTT started")
+    except Exception:
+        logger.exception("MQTT connection failed — continuing without MQTT")
 
     yield
 

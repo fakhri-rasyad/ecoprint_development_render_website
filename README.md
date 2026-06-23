@@ -17,9 +17,10 @@ Projek ini merupakan backend yang dikembangkan untuk digunakan sebagai server ut
    pip install -r requirements.txt
    ```
 
-4. Definisikan variabel DATABASE_URL yang akan diisi url dari postgresql pada file .env.
+4. Definisikan variabel FASTAPI_DATABASE_URL dan ALEMBIC_DATABASE_URL yang akan diisi url dari postgresql pada file .env.
    ```shell
-   DATABASE_URL=postgresql://<username>:<password>@localhost:<port>/<nama_tabel_database>
+   FASTAPI_DATABASE_URL=postgresql+psycopg2://<fastapi_user>:<fastapi_pass>@localhost:5432/ecoprint
+   ALEMBIC_DATABASE_URL=postgresql+psycopg2://<alembic_user>:<alembic_pass>:alembicpass@localhost:5432/ecoprint
    ```
 5. Jalankan aplikasi menggunakan command
 
