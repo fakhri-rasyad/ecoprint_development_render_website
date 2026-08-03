@@ -18,10 +18,16 @@ ON ALL SEQUENCES IN SCHEMA public
 TO fastapi_user_url;
 
 -- Default privileges for future tables
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
+ALTER DEFAULT PRIVILEGES
+FOR ROLE alembic_user_url
+IN SCHEMA public
 GRANT SELECT, INSERT, UPDATE, DELETE
-ON TABLES TO fastapi_user_url;
+ON TABLES
+TO fastapi_user_url;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
+ALTER DEFAULT PRIVILEGES
+FOR ROLE alembic_user_url
+IN SCHEMA public
 GRANT USAGE, SELECT
-ON SEQUENCES TO fastapi_user_url;
+ON SEQUENCES
+TO fastapi_user_url;
