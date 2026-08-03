@@ -3,22 +3,53 @@ services:
     build: .
     ports:
       - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mqtt:
+        condition: service_started
+    environment:
+      FASTAPI_DATABASE_URL: postgresql+psycopg2://fastapi_user_url:fastapipass@database:5432/ecoprint
+      MQTT_HOST: mqtt
+      MQTT_PORT: 1883
 
   database:
-    image: postgres:18
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=ecoprint
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecoprint
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ecoprint" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./postgres_user-scripts.sql:/docker-entrypoint-initdb.d:ro
+
+  migrate:
+    build: .
+    command: alembic upgrade head
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      ALEMBIC_DATABASE_URL: postgresql+psycopg2://alembic_user_url:alembicpass@database:5432/ecoprint
+
   mqtt:
-    image: eclipse/mosquitto:1.4.8
+    image: eclipse-mosquitto:2
     ports:
       - "1883:1883"
     volumes:
       - ./mosquitto_conf/config:/mosquitto/config
       - ./mosquitto_conf/data:/mosquitto/data
-      - ./mosquitto_conf/log:/mosquttio/log
+      - ./mosquitto_conf/log:/mosquitto/log
     restart: unless-stopped
+
 networks:
   default:
     name: ecoprint-network
+
+volumes:
+  postgres_data:
